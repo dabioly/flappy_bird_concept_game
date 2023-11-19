@@ -35,8 +35,6 @@ class Player(pygame.sprite.Sprite):
             self.rect.top = 0
 
     def animation_state(self):
-        
-
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE]:
             self.image = self.player_jump
@@ -58,14 +56,6 @@ class Pipe(pygame.sprite.Sprite):
 class Bg(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        self.bg_surf = pygame.image.load(os.path.join('backgrounds','extendedbg.png')).convert_alpha()
-        self.image = self.bg_surf
-        self.rect = self.image.get_rect(topright = (0,0))
-    def animation_state(self):
-        if self.rect.bottom < 600:
-            self.rect.x += 20
-    def update(self):
-        self.animation_state()
 FPS = 60
 WIDTH = 500
 HEIGHT = 600
@@ -82,12 +72,10 @@ pygame.display.set_caption("Flappy Bird Concept!")
 player = pygame.sprite.GroupSingle()
 player.add(Player())
 
-bg = pygame.sprite.GroupSingle()
-bg.add(Bg())
 
 #background & screens
-
-
+bg_surf = pygame.image.load(os.path.join('backgrounds','extended2.png')).convert_alpha()
+bg_x_pos = 0
 player_test = pygame.image.load(os.path.join('player','temppt.png')).convert_alpha()
 player_test_scaled = pygame.transform.rotozoom(player_test,0,2)
 player_test_rect = player_test_scaled.get_rect(center=(WIDTH//2,HEIGHT//2))
@@ -136,12 +124,11 @@ while run:
 
         WIN.blit(game_title_surf,game_title_rect) 
     if game_active == 'B': #MAIN GAME
-        #WIN.blit(bg_surf,(0,0))
+        bg_x_pos -= 2
+        if bg_x_pos < -500:
+            bg_x_pos = 0
+        WIN.blit(bg_surf,(bg_x_pos,0))
         # score = display function
-
-        bg.draw(WIN)
-        bg.update()
-
         player.draw(WIN)
         player.update()
         # 
