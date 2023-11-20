@@ -1,6 +1,6 @@
 import pygame
 import os
-
+import random
 
 
 class Player(pygame.sprite.Sprite):
@@ -50,12 +50,28 @@ class Player(pygame.sprite.Sprite):
         self.animation_state()
 
 class Pipe(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self,x,y):
         super().__init__()
+        self.image = pygame.image.load(os.path.join('pipes','pipe.png')).convert_alpha()
+        self.rect = self.image.get_rect(midtop=((x,y)))
+        self.speed = 5
 
-class Bg(pygame.sprite.Sprite):
-    def __init__(self):
-        super().__init__()
+    def pipe_mov(self):
+        self.rect.x -= self.speed
+    def update(self):
+        self.pipe_mov()
+    def delete(self):
+        if self.rect < -100:
+            self.kill()
+
+def display_score():
+    pass
+
+def collision_sprite():
+    pass
+
+
+
 FPS = 60
 WIDTH = 500
 HEIGHT = 600
@@ -72,10 +88,15 @@ pygame.display.set_caption("Flappy Bird Concept!")
 player = pygame.sprite.GroupSingle()
 player.add(Player())
 
+pipes = pygame.sprite.Group()
+
+
+
 
 #background & screens
 bg_surf = pygame.image.load(os.path.join('backgrounds','extended2.png')).convert_alpha()
-bg_x_pos = 0
+bg_x_pos1 = 0
+bg_x_pos2 = bg_surf.get_width()
 player_test = pygame.image.load(os.path.join('player','temppt.png')).convert_alpha()
 player_test_scaled = pygame.transform.rotozoom(player_test,0,2)
 player_test_rect = player_test_scaled.get_rect(center=(WIDTH//2,HEIGHT//2))
@@ -92,6 +113,12 @@ game_active= 'B'
 
 clock = pygame.time.Clock()
 run = True
+
+for i in range(99):
+    x = WIDTH + i*200
+    y = random.randint(200,HEIGHT-200)
+    pipes.add(Pipe(x,y))
+
 while run:
     clock.tick(FPS)
     #WIN.fill('white')
@@ -103,7 +130,7 @@ while run:
         if game_active == 'A': #DURING INTRO
             if event.type == pygame.KEYDOWN and event.type == pygame.K_SPACE:
                 game_active = 'B'
-                start_time = pygame.time.get_ticks()
+                #start_time = pygame.time.get_ticks()
 
         elif game_active == 'B': #MAIN GAME
             pass
@@ -122,17 +149,27 @@ while run:
         game_title_surf = game_font.render("Slippy Bird!",False,TEXT_COLOR)
         game_title_rect = game_title_surf.get_rect(center = (250,50))
 
-        WIN.blit(game_title_surf,game_title_rect) 
+        WIN.blit(game_title_surf,game_title_rect)
+
     if game_active == 'B': #MAIN GAME
-        bg_x_pos -= 2
-        if bg_x_pos < -500:
-            bg_x_pos = 0
-        WIN.blit(bg_surf,(bg_x_pos,0))
+        WIN.blit(bg_surf,(bg_x_pos1,0))
+        WIN.blit(bg_surf,(bg_x_pos2,0))        
+        bg_x_pos1 -= 2
+        bg_x_pos2 -= 2
+        #if bg_x_pos < -500:
+            #bg_x_pos = 0
+        if bg_x_pos1 <= -(bg_surf.get_width()):
+            bg_x_pos1 = bg_surf.get_width()
+        if bg_x_pos2 <= -(bg_surf.get_width()):
+            bg_x_pos2 = bg_surf.get_width()
+        #WIN.blit(bg_surf,(bg_x_pos,0))
         # score = display function
         player.draw(WIN)
         player.update()
         # 
-        # Same with pipes
+        pipes.update()
+        for pipe in pipes:
+            WIN.blit(pipe.image, pipe.rect)
         # 
         # check for collision with sprites
         pass 
