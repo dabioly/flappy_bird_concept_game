@@ -23,10 +23,10 @@ class Player(pygame.sprite.Sprite):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE]:
 
-            self.gravity = -20
+            self.gravity = -9
 
     def apply_gravity(self):
-        self.gravity += 1
+        self.gravity += 0.5
         self.rect.y += self.gravity
         if self.rect.bottom >= 600:
             self.rect.bottom = 600
@@ -50,25 +50,50 @@ class Player(pygame.sprite.Sprite):
         self.animation_state()
 
 class Pipe(pygame.sprite.Sprite):
-    def __init__(self,x,y):
+    def __init__(self):
         super().__init__()
-        self.image = pygame.image.load(os.path.join('pipes','pipe.png')).convert_alpha()
-        self.rect = self.image.get_rect(midtop=((x,y)))
-        self.speed = 5
+        self.image = pygame.image.load(os.path.join('pipes','altpipe.png')).convert_alpha()
+        self.rect = self.image.get_rect(midtop=((900,random.randint(250,400)))) #900,1100
+
+        #self.speed = 5
 
     def pipe_mov(self):
-        self.rect.x -= self.speed
+        self.rect.x -= 6 #6
     def update(self):
         self.pipe_mov()
+        #self.delete()
     def delete(self):
         if self.rect < -100:
             self.kill()
+
+class AltPipe(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.image.load(os.path.join('pipes','altpipe2.png')).convert_alpha()
+        self.rect = self.image.get_rect(midbottom=((900,random.randint(100,300)))) #900,1100
+
+        #self.speed = 5
+
+    def pipe_mov(self):
+        self.rect.x -= 6 #6
+    def update(self):
+        self.pipe_mov()
+        #self.delete()
+    def delete(self):
+        if self.rect < -100:
+            self.kill()
+
 
 def display_score():
     pass
 
 def collision_sprite():
-    pass
+    if pygame.sprite.spritecollide(player.sprite,pipes,False) or pygame.sprite.spritecollide(player.sprite,pipes_alt,False): #(sprite,group,bool) <= if bool was True obstacles would instantly be deleted
+        pipes.empty()
+        pipes_alt.empty()
+        return False
+    else:
+        return True
 
 
 
@@ -83,13 +108,15 @@ TEXT_COLOR = ((111,196,169))
 WIN = pygame.display.set_mode((WIDTH,HEIGHT))
 pygame.display.set_caption("Flappy Bird Concept!")
 #pygame.display.set_icon()
+pygame.mouse.set_visible(False)
+
 
 #groups
 player = pygame.sprite.GroupSingle()
 player.add(Player())
 
 pipes = pygame.sprite.Group()
-
+pipes_alt = pygame.sprite.Group()
 
 
 
@@ -106,18 +133,18 @@ game_font = pygame.font.Font(os.path.join('font','Pixeltype.ttf'),50)
 start_time = 0
 score = 0
 #states
-game_active= 'B'
+game_active= 'A'
     # 'A' == intro screen
     # 'B' == main game
     # 'C' == game over 
 
+
+obstacle_timer = pygame.USEREVENT + 1
+pygame.time.set_timer(obstacle_timer,1500)
+
 clock = pygame.time.Clock()
 run = True
 
-for i in range(99):
-    x = WIDTH + i*200
-    y = random.randint(200,HEIGHT-200)
-    pipes.add(Pipe(x,y))
 
 while run:
     clock.tick(FPS)
@@ -128,18 +155,24 @@ while run:
             run = False
 
         if game_active == 'A': #DURING INTRO
-            if event.type == pygame.KEYDOWN and event.type == pygame.K_SPACE:
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 game_active = 'B'
+                print("AAAAAAAAAAA")
                 #start_time = pygame.time.get_ticks()
 
-        elif game_active == 'B': #MAIN GAME
-            pass
+        if game_active == 'B': #MAIN GAME
+            if event.type == obstacle_timer:
+                pipes.add(Pipe())
+                pipes_alt.add(AltPipe())
 
-        elif game_active == 'C': #GAME OVER
-            if event.type == pygame.KEYDOWN and event.type == pygame.K_SPACE:
+
+        if game_active == 'C': #GAME OVER
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 game_active = 'B'
                 #maybe restart start_time to zero?
                 start_time = pygame.time.get_ticks() 
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                game_active = 'A'
 
 
     if game_active == 'A': #INTRO
@@ -152,6 +185,7 @@ while run:
         WIN.blit(game_title_surf,game_title_rect)
 
     if game_active == 'B': #MAIN GAME
+
         WIN.blit(bg_surf,(bg_x_pos1,0))
         WIN.blit(bg_surf,(bg_x_pos2,0))        
         bg_x_pos1 -= 2
@@ -167,14 +201,23 @@ while run:
         player.draw(WIN)
         player.update()
         # 
+        
+
+        pipes.draw(WIN)
         pipes.update()
-        for pipe in pipes:
-            WIN.blit(pipe.image, pipe.rect)
+
+        pipes_alt.draw(WIN)
+        pipes_alt.update()
+        # for pipe in pipes:
+        #WIN.blit(pipe.image, pipe.rect)
         # 
-        # check for collision with sprites
-        pass 
+        #collision
+        results = collision_sprite() 
+        if results == False: #GAME OVER
+            game_active = 'C'
+        
     if game_active == 'C': #GAME OVER
-        WIN.fill('red')
+        #WIN.fill(TRAN)
         WIN.blit(player_test_scaled,player_test_rect)
 
     pygame.display.update()
