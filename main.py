@@ -23,10 +23,10 @@ class Player(pygame.sprite.Sprite):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE]:
 
-            self.gravity = -9
+            self.gravity = -5
 
     def apply_gravity(self):
-        self.gravity += 0.5
+        self.gravity += 0.25
         self.rect.y += self.gravity
         if self.rect.bottom >= 600:
             self.rect.bottom = 600
@@ -53,12 +53,12 @@ class Pipe(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         self.image = pygame.image.load(os.path.join('pipes','altpipe.png')).convert_alpha()
-        self.rect = self.image.get_rect(midtop=((900,random.randint(250,400)))) #900,1100
+        self.rect = self.image.get_rect(midtop=((900,random.randint(250,430)))) #900,1100
 
         #self.speed = 5
 
     def pipe_mov(self):
-        self.rect.x -= 6 #6
+        self.rect.x -= 4 #6
     def update(self):
         self.pipe_mov()
         #self.delete()
@@ -70,12 +70,12 @@ class AltPipe(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         self.image = pygame.image.load(os.path.join('pipes','altpipe2.png')).convert_alpha()
-        self.rect = self.image.get_rect(midbottom=((900,random.randint(100,300)))) #900,1100
+        self.rect = self.image.get_rect(midbottom=((900,random.randint(100,230)))) #900,1100
 
         #self.speed = 5
 
     def pipe_mov(self):
-        self.rect.x -= 6 #6
+        self.rect.x -= 4 #6
     def update(self):
         self.pipe_mov()
         #self.delete()
@@ -101,7 +101,7 @@ FPS = 60
 WIDTH = 500
 HEIGHT = 600
 
-TRAN = (0,0,0,0)
+TRAN = (0,0,0)
 TEXT_COLOR = ((111,196,169))
 
 #windows and title
@@ -124,16 +124,18 @@ pipes_alt = pygame.sprite.Group()
 bg_surf = pygame.image.load(os.path.join('backgrounds','extended2.png')).convert_alpha()
 bg_x_pos1 = 0
 bg_x_pos2 = bg_surf.get_width()
+
 player_test = pygame.image.load(os.path.join('player','temppt.png')).convert_alpha()
 player_test_scaled = pygame.transform.rotozoom(player_test,0,2)
 player_test_rect = player_test_scaled.get_rect(center=(WIDTH//2,HEIGHT//2))
 pygame.init()
 #font
 game_font = pygame.font.Font(os.path.join('font','Pixeltype.ttf'),50)
+game_font2 = pygame.font.Font(os.path.join('font','Pixeltype.ttf'),100)
 start_time = 0
 score = 0
 #states
-game_active= 'A'
+game_active= 'B'
     # 'A' == intro screen
     # 'B' == main game
     # 'C' == game over 
@@ -176,16 +178,20 @@ while run:
 
 
     if game_active == 'A': #INTRO
-        WIN.fill(TRAN)
+        #WIN.fill(TRAN)
         #BLIT DEAD CHACTER
         # 
-        game_title_surf = game_font.render("Slippy Bird!",False,TEXT_COLOR)
-        game_title_rect = game_title_surf.get_rect(center = (250,50))
-
+        game_title_surf = game_font2.render("Slippy Bird!",False,TEXT_COLOR)
+        game_title_rect = game_title_surf.get_rect(center = (WIDTH//2,HEIGHT//6))
+        
+        pygame.draw.rect(WIN,'brown',game_title_rect)
         WIN.blit(game_title_surf,game_title_rect)
+        
 
     if game_active == 'B': #MAIN GAME
-
+        if score == 0:
+            game_active = 'A'
+        score = 1
         WIN.blit(bg_surf,(bg_x_pos1,0))
         WIN.blit(bg_surf,(bg_x_pos2,0))        
         bg_x_pos1 -= 2
@@ -219,5 +225,6 @@ while run:
     if game_active == 'C': #GAME OVER
         #WIN.fill(TRAN)
         WIN.blit(player_test_scaled,player_test_rect)
+        
 
     pygame.display.update()
